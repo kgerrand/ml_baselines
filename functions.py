@@ -9,11 +9,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime, timedelta
 from pathlib import Path
+import joblib
 from joblib import load
 import calendar
 from scipy.stats import linregress
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+import os
 
 import config as cfg
 
@@ -321,8 +323,13 @@ def access_model(model_name):
     Returns:
     - model: The loaded model
     """
-    model = load(data_path/'saved_files'/model_name)
-    return model
+    model_path = Path('../models/model_files') / model_name
+    if not model_path.exists():
+        raise FileNotFoundError(f"The model file does not exist at path: {model_path}")
+ 
+    else:
+        model = joblib.load(model_path)
+        return model
         
 #=======================================================================
 def quantify_noise(results):
@@ -498,7 +505,8 @@ def calc_statistics(results):
 
 #=======================================================================
 def plot_predictions(results, start_date=None, end_date=None,
-                     paper=False, legend=True, legend_pos="best", set_shading=True):
+                     paper=False, legend=True, legend_pos="best", 
+                     set_shading=True, save_fig=False):
     """
     Plots mole fraction against time, with the predicted baselines and true baselines highlighted.
 
@@ -516,7 +524,7 @@ def plot_predictions(results, start_date=None, end_date=None,
     - None
     """
 
-    site, site_name, compound, _ = access_info()
+    site, site_name, compound, model_type = access_info()
 
     if start_date and end_date:
         # if dates given in 'YYYY' format
@@ -623,15 +631,15 @@ def plot_predictions(results, start_date=None, end_date=None,
 
         if paper:
             ax.set_xlabel("")
-            ax.set_ylabel("mole fraction in air / ppt", fontsize=16, fontstyle='italic')
+            ax.set_ylabel("mole fraction in air / ppt", fontsize=20, fontstyle='italic')
 
-            ax.tick_params(axis='both', which='major', labelsize=14, rotation=0)
-            ax.tick_params(axis='both', which='minor', labelsize=12, rotation=0)
+            ax.tick_params(axis='both', which='major', labelsize=18, rotation=0)
+            ax.tick_params(axis='both', which='minor', labelsize=14, rotation=0)
             for tick in ax.get_xticklabels():
                 tick.set_ha('center')
 
             if legend:
-                ax.legend(loc=legend_pos, fontsize=14)
+                ax.legend(loc=legend_pos, fontsize=18)
                 
         else:
             ax.set_xlabel("")
@@ -644,10 +652,17 @@ def plot_predictions(results, start_date=None, end_date=None,
 
             if legend:
                 ax.legend(loc=legend_pos, fontsize=12)
+
+    if save_fig==True:
+        saving_path = Path.home() / 'Downloads' / f'{site}_plots'
+        if not saving_path.exists():
+            saving_path.mkdir(parents=True, exist_ok=True)
+        fig.savefig(saving_path / f"{model_type.upper()}_{compound}_{site}.png", dpi=300, bbox_inches='tight')
     
 #=======================================================================
 def plot_predictions_monthly(results, start_date=None, end_date=None, 
-                             show_anomalies=True, legend=True, legend_pos='best', paper=False, title=False, set_shading=True):
+                             show_anomalies=True, legend=True, legend_pos='best', 
+                             paper=False, title=False, set_shading=True, save_fig=False):
     """
     Plots the predicted baselines and their standard deviations against the true baselines and their standard deviations, highlighting any points outside three standard deviations.
 
@@ -666,7 +681,7 @@ def plot_predictions_monthly(results, start_date=None, end_date=None,
     Returns:
     - None
     """    
-    site, site_name, compound, _ = access_info()
+    site, site_name, compound, model_type = access_info()
 
     # filtering to only show the years specified
     if start_date and end_date:
@@ -850,9 +865,13 @@ def plot_predictions_monthly(results, start_date=None, end_date=None,
             ax.legend(loc=legend_pos, fontsize=12)
 
         if title:
-            ax.set_title(f"Comparing True and Predicted Baseline Monthly Means for {compound} at {site_name}", fontsize=15)
+            ax.set_title(f"{compound}, {site_name}", fontsize=15)
 
-
+    if save_fig==True:
+        saving_path = Path.home() / 'Downloads' / f'{site}_plots'
+        if not saving_path.exists():
+            saving_path.mkdir(parents=True, exist_ok=True)
+        fig.savefig(saving_path / f"{model_type.upper()}_{compound}_{site}_monthly.png", dpi=300, bbox_inches='tight')
     plt.show()
 
 
