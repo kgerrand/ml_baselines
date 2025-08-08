@@ -1,6 +1,6 @@
 '''
 
-This script transforms the surface pressure and boundary layer height data taken from ECMWF into a single file per year.
+This script separates the relevant meteorological data from ECMWF into a single file per variable per year.
 The data is saved as a netCDF file.
 
 '''

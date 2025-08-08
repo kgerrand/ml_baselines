@@ -46,7 +46,7 @@ def read_intem(site):
     for file in files:
 
         # Read the data, skipping metadata, putting into pandas dataframe
-        data = pd.read_csv(file, skiprows=6, delim_whitespace=True)
+        data = pd.read_csv(file, skiprows=6, sep=r'\s+')
 
         # Setting the index of the dataframe to be the extracted datetime and naming it time
         data.index = pd.to_datetime(data['YY'].astype(str) + "-" + \
@@ -301,16 +301,14 @@ def access_info():
 
     Returns:
     - site (str): The site as defined in config.py
-    - site_name (str): The name of the site corresponding to the site
     - compound (str): The compound as defined in config.py
     - model_type (str): The type of model as defined in config.py
     """
     site = cfg.site
-    site_name = cfg.site_dict[site]
     compound = cfg.compound
     model_type = cfg.model_type
 
-    return site, site_name, compound, model_type
+    return site, compound, model_type
     
 #=======================================================================
 def access_model(model_name):
@@ -524,7 +522,7 @@ def plot_predictions(results, start_date=None, end_date=None,
     - None
     """
 
-    site, site_name, compound, model_type = access_info()
+    site, compound, model_type = access_info()
 
     if start_date and end_date:
         # if dates given in 'YYYY' format
@@ -575,7 +573,7 @@ def plot_predictions(results, start_date=None, end_date=None,
 
 
     # formatting depending on for paper (increased font size) or not, and if user wants shading
-    # fig.suptitle(f"{compound} at {site_name}", fontsize=20, y=0.92)
+    # fig.suptitle(f"{compound} at {site}", fontsize=20, y=0.92)
 
     if set_shading:
         # Gosan model
@@ -681,7 +679,7 @@ def plot_predictions_monthly(results, start_date=None, end_date=None,
     Returns:
     - None
     """    
-    site, site_name, compound, model_type = access_info()
+    site, compound, model_type = access_info()
 
     # filtering to only show the years specified
     if start_date and end_date:
@@ -855,7 +853,7 @@ def plot_predictions_monthly(results, start_date=None, end_date=None,
             ax.legend(loc=legend_pos, fontsize=14)
 
         if title:
-            ax.set_title(f"Comparing True and Predicted Baseline Monthly Means for {compound} at {site_name}", fontsize=16)
+            ax.set_title(f"Comparing True and Predicted Baseline Monthly Means for {compound} at {site}", fontsize=16)
     
     else:
         ax.set_ylabel("mole fraction in air / ppt", fontsize=12, fontstyle='italic')
@@ -865,7 +863,7 @@ def plot_predictions_monthly(results, start_date=None, end_date=None,
             ax.legend(loc=legend_pos, fontsize=12)
 
         if title:
-            ax.set_title(f"{compound}, {site_name}", fontsize=15)
+            ax.set_title(f"{compound}, {site}", fontsize=15)
 
     if save_fig==True:
         saving_path = Path.home() / 'Downloads' / f'{site}_plots'
@@ -1128,7 +1126,7 @@ def compare_residuals(compare, paper=False, title=True):
     
     """
 
-    site, site_name, _, model_type = access_info()
+    site, _, model_type = access_info()
 
     if model_type == 'nn':
         model = 'Neural Network'
@@ -1176,7 +1174,7 @@ def compare_residuals(compare, paper=False, title=True):
 
 
     if compare=='models':
-        title_ = f'Comparing Residual Densities for Different Model Types at {site_name}'
+        title_ = f'Comparing Residual Densities for Different Model Types at {site}'
         # accessing all data files for the given site, but different model types
         data_files = list((data_path/'saved_files').glob(f"*_residuals_*_{site}.csv"))
 
@@ -1190,9 +1188,9 @@ def compare_residuals(compare, paper=False, title=True):
 
         model_types = list(set(model_types))
         if len(model_types) == 1:
-            print(f"Residual data for only 1 model type found at given site ({site_name}).")
+            print(f"Residual data for only 1 model type found at given site ({site}).")
         else:
-            print(f"Residual data for both model types found at given site ({site_name}).")
+            print(f"Residual data for both model types found at given site ({site}).")
 
 
         # creating a density plot with aggregated residuals for each model
@@ -1266,7 +1264,7 @@ def analyse_anomalies(results, anomalies_list, title=False):
         print("No anomalies detected.")
         return
 
-    _, site_name, compound, _ = access_info()
+    _, compound, _ = access_info()
 
     def get_days(month):
         """
@@ -1402,7 +1400,7 @@ def analyse_anomalies(results, anomalies_list, title=False):
                 axs[n,1].text(i, counts[i], f"{counts[i]} ({percentage:.1f}%)", fontsize=10, ha='center', va='bottom')
 
     if title:
-       fig.suptitle(f"Anomalous Months for {compound} at {site_name}", fontsize=25, y=1.01)
+       fig.suptitle(f"Anomalous Months for {compound} at {site}", fontsize=25, y=1.01)
     
     fig.set_tight_layout(True)
     plt.show()
@@ -1479,7 +1477,7 @@ def plot_benchmark(df_benchmark, percentile):
     Returns:
     - None
     """
-    _, site_name, compound = access_info()
+    _, compound = access_info()
     
     df_benchmark_baselines = df_benchmark.where(df_benchmark["benchmark_flag"] == 1).dropna()
     df_benchmark_baselines.drop(columns=["flag"], inplace=True)
@@ -1552,7 +1550,7 @@ def plot_benchmark(df_benchmark, percentile):
             anomalous_months.append(date)
 
     plt.ylabel("mole fraction in air / ppt", fontsize=12, fontstyle='italic')
-    plt.title(f"{compound} at {site_name}", fontsize=15)
+    plt.title(f"{compound} at {site}", fontsize=15)
     plt.legend(loc="best", fontsize=12)
     plt.show()
 
@@ -1571,7 +1569,7 @@ def compare_benchmark_to_model(df_benchmark, percentile, model, start_year=None,
     Returns:
     - None
     """
-    site, site_name, compound = access_info()
+    site, compound = access_info()
         
     # load in data from manning_baselines.ipynb
     data_balanced_ds = xr.open_dataset(data_path/'saved_files'/f'data_balanced_ds_{compound}_{site}.nc')
@@ -1670,7 +1668,7 @@ def compare_benchmark_to_model(df_benchmark, percentile, model, start_year=None,
     # ax.fill_between(df_benchmark_monthly.index, lower_benchmark, upper_benchmark, color='purple', alpha=0.2, label="Benchmarked Baseline Standard Deviation")
     
     plt.ylabel("mole fraction in air / ppt", fontsize=12, fontstyle='italic')
-    # plt.title(f"{compound} at {site_name}", fontsize=15)
+    # plt.title(f"{compound} at {site}", fontsize=15)
     plt.legend(loc="best", fontsize=12)
     plt.show()
 
