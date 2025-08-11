@@ -21,7 +21,7 @@ print(f"Creating a random forest model for {site}...")
 
 #-------------------------------------------------------------
 # LOADING DATA
-data = pd.read_csv(data_path/f'for_model_{compound}_{site}.csv', parse_dates=['time'])
+data = pd.read_csv(data_path/f'for_model_pca_{compound}_{site}.csv', parse_dates=['time'])
 train_data = data[(data['time'].dt.year >= 2018) & (data['time'].dt.year <= 2018)]
 val_data = data[(data['time'].dt.year >= 2019) & (data['time'].dt.year <= 2019)]
 test_data = data[~data.index.isin(train_data.index) & ~data.index.isin(val_data.index)]
