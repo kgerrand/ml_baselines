@@ -18,7 +18,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 import config as cfg
-import functions as f
+import functions_orig as f
 
 site, compound, _ = f.access_info()
 model_type = cfg.model_type

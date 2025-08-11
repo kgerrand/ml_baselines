@@ -20,6 +20,6 @@ for subdir, dirs, files in os.walk(root_dir):
             print(f"--- Running {file_parent}/{file_name} ---")
             result = subprocess.run(["python", script_path], capture_output=True, text=True, cwd=subdir)
             
-            print("Output:\n", result.stdout)
+            print(result.stdout)
             if result.stderr:
                 print("Errors:\n", result.stderr)
