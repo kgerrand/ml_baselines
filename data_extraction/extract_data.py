@@ -11,8 +11,12 @@ from pathlib import Path
 
 import sys
 sys.path.append('../')
+import config as cfg
 
 site = 'CGO'
+assert site in ['MHD', 'RPB', 'CGO', 'GSN', 'JFJ', 'CMN', 'THD', 'ZEP', 'SMO'], f"Site {site} not recognised."
+
+data_path = cfg.path_root/'data_files'/'ECMWF'/site
 
 site_coords_dict = {"MHD":[53.3267, -9.9046], 
                     "RPB":[13.1651, -59.4321], 
@@ -39,10 +43,6 @@ points = range(17)
 # creating an xarray DataArray for the grid coordinates
 target_lat = xr.DataArray(points_lat, dims=["points"], coords={"points": points})
 target_lon = xr.DataArray(points_lon, dims=["points"], coords={"points": points})
-
-
-data_path = Path.home()/'OneDrive'/'Kirstin'/'Uni'/'Year4'/'MSciProject'/'data_files'/'meteorological_data'/'ECMWF'/site
-
 
 years = range(2010, 2024)
 

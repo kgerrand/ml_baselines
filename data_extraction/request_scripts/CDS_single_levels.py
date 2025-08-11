@@ -1,25 +1,19 @@
 '''
 This script downloads meteorological data from the ECMWF (European Centre for Medium-Range Weather Forecasts) using the CDS (Climate Data Store) API. 
-The data being downloaded has been limited to the area surrounding Mace Head in Ireland, an AGAGE data collection station (20W-0W, 40N-60N).
+The data being downloaded has been limited to the area surrounding the specified site, with a grid of +/- 10 degrees latitude and longitude from the site coordinates.
 The data being downloaded is u and v wind at 10 m above the surface, surface pressure and boundary layer height.
-
-This code is ran on BC4, a supercomputer at the University of Bristol.
-
-The code to download data from other sites is very similar; it just sees a change in the file path and the area being downloaded.
 
 '''
 
 import cdsapi
-import sys
 from pathlib import Path
-import os
-
-c = cdsapi.Client()
-
+import os, sys
+sys.path.append('../../')
+import config as cfg
 
 # change to extract data for different AGAGE sites
-site = 'ZEP'
-
+site = 'MHD'
+assert site in ['CGO', 'CMN', 'GSN', 'JFJ', 'MHD', 'RPB', 'SMO', 'THD', 'ZEP'], f"Site {site} not recognised."
 site_coords_dict = {"MHD":[53.3267, -9.9046], 
                     "RPB":[13.1651, -59.4321], 
                     "CGO":[-40.6833, 144.6894], 
@@ -40,12 +34,10 @@ min_lat = site_lat - 11
 max_lon = site_lon + 11
 min_lon = site_lon - 11
 
-# output_path = Path.home()/'Year4'/'MSciProject'/'data'/'single_levels'
-output_path = Path.home()/'OneDrive'/'Kirstin'/'Uni'/'Year4'/'MSciProject'/'data_files'/'meteorological_data'/'ECMWF'/site/'single_levels'
-
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
-
+c = cdsapi.Client()
+output_path = cfg.path_root/'data_files'/'ECMWF'/site/'single_levels'
 
 def main(year):
 
