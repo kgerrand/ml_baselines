@@ -1,22 +1,23 @@
 '''
-This script iterates through all AGAGE sites and evaluates model performance.
+This script iterates through all AGAGE sites and compounds, setting up the necessary variables for model training and evaluation.
 '''
 #-------------------------------------------------------------
+
 import subprocess, sys
 sys.path.append('../')
 import config as cfg
 
 sites = cfg.agage_sites
-model_types = ["NN", "RF"]
+compounds = cfg.compounds
 
 for site in sites:
-    for model_type in model_types:
-        print(f"\n------ Evaluating {model_type} for {site} ------")
+    print(f"\n------ Setting up variables for {site} ------")
+    for compound in compounds:
         subprocess.run([
             sys.executable,
-            "model_eval.py",
+            "baselines_setup.py",
             "--site", site,
-            "--model_type", model_type
+            "--compound", compound
         ], check=True)
 
 #-------------------------------------------------------------

@@ -2,7 +2,8 @@
 Code to Evaluate Model Performance and Classify Anomalies
 
 This script is used to evaluate the performance of machine learning models for a given site and compound. It loads the model, processes the data, and generates predictions. The results are then saved for further analysis.
-It loads the model, processes the data, and generates predictions. The results are then saved for further analysis in a csv file, one per site.
+It loads the model, processes the data, and generates predictions for a given compound. These predictions are saved for further analysis, but initial calculations including MAE, RMSE, and MAPE are also performed to quantify the model's performance. 
+Anomalies are identified based on the predictions, and a summary of the results is generated. This summary is saved in a csv file, one per site.
 
 '''
 
@@ -34,8 +35,7 @@ def model_eval(site, model_type):
 
     # Determine the compounds available for the site
     print(f"Checking available compounds...")
-    compound_list = ['CH4', 'CF4', 'CFC-12', 'CH2Cl2', 'CH3Br',
-                     'HCFC-22', 'HFC-125', 'HFC-134A', 'N2O', 'SF6']
+    compound_list = cfg.compounds
     site_compounds = []
     for compound in compound_list:
         data_file = data_path / 'saved_files' / f'data_ds_{compound.lower()}_{site}.nc'
@@ -53,7 +53,11 @@ def model_eval(site, model_type):
     for compound in site_compounds:
         print(f"--- Processing {compound} ({num_processed+1}/{num_site_compounds}) ---")
         results = f.make_predictions(model, site, compound.lower())
-        print(f"Predictions made.")
+        saving_path = f'model_results/{site}/{model_type.upper()}_results'
+        if not os.path.exists(saving_path):
+            os.makedirs(saving_path)
+        results.to_csv(f'model_results/{site}/{model_type.upper()}_results/{compound}.csv')
+        print(f"Predictions made and saved to model_results/{site}/{model_type.upper()}_results/{compound}.csv")
         print('')
 
         # quantitative analysis
@@ -85,7 +89,7 @@ def model_eval(site, model_type):
             'Significant anomaly list (>10std)': signif_anomalies
         }
 
-        results_csv = os.path.join(f'model_results/{site}', f'{site}_{model_type}.csv')
+        results_csv = os.path.join(f'model_results/{site}', f'{site}_{model_type.upper()}.csv')
         if not os.path.exists(f'model_results/{site}'):
             os.makedirs(f'model_results/{site}')
         if os.path.exists(results_csv):
@@ -102,7 +106,7 @@ def model_eval(site, model_type):
         print('\n')
 
     print('All compounds processed.')
-    print(f'Results saved to: model_results/{site}/{site}_{model_type}.csv')
+    print(f'Results saved to: model_results/{site}/{site}_{model_type.upper()}.csv')
 
 
 #-------------------------------------------------------------
@@ -116,7 +120,7 @@ if __name__ == "__main__":
     model_type = args.model_type.lower()
 
     # Validate inputs
-    assert site in ['MHD', 'RPB', 'CGO', 'GSN', 'JFJ', 'CMN', 'THD', 'ZEP', 'SMO'], f"Site {site} not recognised."
+    assert site in cfg.agage_sites, f"Site {site} not recognised."
     assert model_type in ['nn', 'rf'], f"Model type {model_type} not recognised."
 
     if model_type == 'nn':
@@ -124,10 +128,10 @@ if __name__ == "__main__":
     elif model_type == 'rf':
         model_name = 'random forest'
 
-    print(f"Evaluating the \033[1m{site}\033[0;0m \033[1m{model_name}\033[0;0m model...")
+    print(f"Evaluating the {site} {model_name} model...")
     print('')
     model_eval(site, model_type)
 
-    print(f"Model evaluation for {site} completed.")
+    print(f"{model_name} model evaluation for {site} completed.\n")
 
 #-------------------------------------------------------------
