@@ -1,6 +1,5 @@
 # Initialise path to root directory - this is where the data and models are stored. Files will be saved relative to this path.
 from pathlib import Path
-path_root = Path.home()/'OneDrive'/'Kirstin'/'Uni'/'Year4'/'MSciProject'
 def get_path_root():
     print("Please update the path_root variable in config.py to point to the root directory.")
     return Path.home() / ''
