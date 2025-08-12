@@ -39,6 +39,11 @@ def baseline_setup(site, compound):
 
     """
     #-------------------------------------------------------------
+    # CHECKING IF OUTPUT DATA ALREADY EXISTS
+    if (data_path/'saved_files'/f'data_ds_{compound}_{site}.nc').exists():
+        print(f"Data for {compound} at {site} already exists. Skipping setup.\n")
+        return
+
     # SETTING UP VARIABLES
     print("Loading in training data...")
     # extracting baseline flags for given site
@@ -204,6 +209,8 @@ def baseline_setup(site, compound):
     pca_components.to_csv(data_path/'saved_files'/f'for_model_pca_{compound}_{site}.csv', index=True)
     #-------------------------------------------------------------
 
+    print(f"Variable setup for {compound} at {site} completed successfully.\n")
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Model evaluation script.")
@@ -222,7 +229,5 @@ if __name__ == "__main__":
 
     print(f"\n--- Setting up variables for {compound} ---")
     baseline_setup(site, compound)
-
-    print(f"Variable setup for {compound} at {site} completed successfully.\n")
 
 #-------------------------------------------------------------
